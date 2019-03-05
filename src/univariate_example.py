@@ -51,11 +51,14 @@ print(x_train.shape, y_train.shape, x_test.shape,
       y_test.shape, l_train.shape, l_test.shape)
 
 """To implement the autoencoder component of the loss, we introduce a set 
-of masking variables mr (and mr1) for each data point. If mr = 1, then we remove 
+of masking variables mr (and mr1) for each data point. If mr = 0, then we remove 
 the data point as an input to the interpolation network, and include 
 the predicted value at this time point when assessing
-the autoencoder loss."""
-m = np.ones_like(x_train)
+the autoencoder loss. In practice, we randomly select 20% of the 
+observed data points to hold out from
+every input time series."""
+
+m = np.ones_like(x_train) # for one dimensional time series m is all ones
 mr = np.ones_like(x_train)
 for i in range(m.shape[0]):
     r = np.random.choice(m.shape[1], int(0.2*m.shape[1]), replace=False)
@@ -97,7 +100,6 @@ interp = sci(main_input)
 reconst = sci(main_input, reconstruction=True)
 aux_output = Lambda(lambda x: x, name='aux_output')(reconst)
 z = Permute((2, 1))(interp)
-z = Masking(mask_value=0.)(z)
 z = GRU(hid, activation='tanh')(z)
 main_output = Dense(8, activation='softmax', name='main_output')(z)
 model = Model([main_input], [main_output, aux_output])

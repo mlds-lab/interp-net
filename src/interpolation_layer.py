@@ -21,7 +21,7 @@ class single_channel_interp(Layer):
         self.kernel = self.add_weight(
             name='kernel',
             shape=(self.d_dim, ),
-            initializer=keras.initializers.Constant(value=-1),
+            initializer=keras.initializers.Constant(value=0.0),
             trainable=True)
         super(single_channel_interp, self).build(input_shape)
 
@@ -38,7 +38,7 @@ class single_channel_interp(Layer):
             ref_t = np.linspace(0, self.hours_look_ahead, self.ref_points)
             output_dim = self.ref_points
             ref_t.shape = (1, ref_t.shape[0])
-        x_t = x_t*m
+        #x_t = x_t*m
         d = K.tile(d[:, :, :, None], (1, 1, 1, output_dim))
         mask = K.tile(m[:, :, :, None], (1, 1, 1, output_dim))
         x_t = K.tile(x_t[:, :, :, None], (1, 1, 1, output_dim))
@@ -56,7 +56,7 @@ class single_channel_interp(Layer):
             w_t = K.logsumexp(-10.0*alpha*norm + K.log(mask),
                               axis=2)  # kappa = 10
             w_t = K.tile(w_t[:, :, None, :], (1, 1, self.time_stamp, 1))
-            w_t = K.exp(-alpha*norm + K.log(mask) - w_t)
+            w_t = K.exp(-10.0*alpha*norm + K.log(mask) - w_t)
             y_trans = K.sum(w_t*x_t, axis=2)
             rep1 = tf.concat([y, w, y_trans], 1)
         return rep1
