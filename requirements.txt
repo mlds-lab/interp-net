@@ -1,5 +1,4 @@
 numpy>=1.15.3
 sklearn>=0.20.0
-cPickle>=1.71
 tensorflow==1.0.0
 keras==2.1.2
