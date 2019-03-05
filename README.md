@@ -10,8 +10,14 @@ We use a two layer interpolation network. The first interpolation layer performs
 The code requires Python 2.7. The file [requirements.txt](requirements.txt) contains the full list of
 required Python modules.
 
+## Usage
+For running our model on univariate time series (UWave dataset):
+```bash
+python univariate_example.py --epochs 1000 --hidden_units 128 --ref_points 128 --batch_size 1024
+```
+
 ## References
 Satya Narayan Shukla and Benjamin Marlin. Interpolation-prediction networks for irregularly sampled time series. In International Conference on Learning Representations, 2019.
 
 ## Contact
-For more  details, please contact snshukla@cs.umass.edu 
+For more  details, please contact <snshukla@cs.umass.edu>. 
