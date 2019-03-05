@@ -17,7 +17,7 @@ python univariate_example.py --epochs 1000 --hidden_units 128 --ref_points 128 -
 ```
 
 ## References
-Satya Narayan Shukla and Benjamin Marlin. Interpolation-prediction networks for irregularly sampled time series. In International Conference on Learning Representations, 2019.
+Satya Narayan Shukla and Benjamin Marlin. Interpolation-prediction networks for irregularly sampled time series. In International Conference on Learning Representations, 2019. \[[pdf](https://openreview.net/pdf?id=r1efr3C9Ym)\]
 
 ## Contact
 For more  details, please contact <snshukla@cs.umass.edu>. 
