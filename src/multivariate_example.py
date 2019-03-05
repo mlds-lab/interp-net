@@ -1,44 +1,40 @@
-import pickle
-import random
-import keras
 import argparse
 import numpy as np
 import tensorflow as tf
-
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import average_precision_score as auprc
 from sklearn.metrics import roc_auc_score as auc_score
+import keras
 from keras.utils import multi_gpu_model
-from keras.layers import Input, Dense, Masking, GRU, Dropout, Lambda, Permute
-from keras.models import load_model, Model, Sequential
+from keras.layers import Input, Dense, GRU, Lambda, Permute
+from keras.models import Model
 from interpolation_layer import single_channel_interp, cross_channel_interp
 
 np.random.seed(10)
 tf.set_random_seed(10)
 
 # Loading dataset
-"""
-y : (N,) discrete for classification, real values for regression
-x : (N, D, tn) input multivariate time series data with dimension 
-    where N is number of data cases, D is the dimension of 
-    sparse and irregularly sampled time series and tn is the union
-    of observed time stamps in all the dimension for a data case n.
-    Since each tn is of variable length, we pad them with zeros to 
-    have an array representation. 
-m : (N, D, tn) where m[i,j,k] = 0 means that x[i,j,k] is not observed.
-T : (N, D, tn) represents the actual time stamps of observation; 
-"""
+# y : (N,) discrete for classification, real values for regression
+# x : (N, D, tn) input multivariate time series data with dimension
+#     where N is number of data cases, D is the dimension of
+#     sparse and irregularly sampled time series and tn is the union
+#     of observed time stamps in all the dimension for a data case n.
+#     Since each tn is of variable length, we pad them with zeros to
+#     have an array representation.
+# m : (N, D, tn) where m[i,j,k] = 0 means that x[i,j,k] is not observed.
+# T : (N, D, tn) represents the actual time stamps of observation;
 
-"""To implement the autoencoder component of the loss, we introduce a set 
-of masking variables mr (and mr1) for each data point. If drop_mask = 0, then we remove 
-the data point as an input to the interpolation network, and include 
-the predicted value at this time point when assessing
-the autoencoder loss. In practice, we randomly select 20% of the 
+
+"""To implement the autoencoder component of the loss, we introduce a set
+of masking variables mr (and mr1) for each data point. If drop_mask = 0,
+then we removecthe data point as an input to the interpolation network,
+and includecthe predicted value at this time point when assessing
+the autoencoder loss. In practice, we randomly select 20% of the
 observed data points to hold out from
 every input time series."""
 
 
-def drop_mask(mask, perc=0.2):
+def hold_out(mask, perc=0.2):
     drop_mask = np.ones_like(mask)
     drop_mask *= mask
     for i in range(mask.shape[0]):
@@ -56,8 +52,8 @@ def drop_mask(mask, perc=0.2):
     return drop_mask
 
 
-x = np.concatenate((x, m, T, drop_mask(m)), axis=1)  # input format
-print(x.shape, y.shape)
+x = np.concatenate((x, m, T, hold_out(m)), axis=1)  # input format
+print x.shape, y.shape
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-g", "--gpus", type=int, default=4,
@@ -75,7 +71,7 @@ ap.add_argument("-hfadm", "--hours_from_adm", type=int,
 
 args = vars(ap.parse_args())
 gpu_num = args["gpus"]
-iter = args["epochs"]
+epoch = args["epochs"]
 hid = args["hidden_units"]
 timestamp = x.shape[2]
 num_features = x.shape[1]/4
@@ -86,8 +82,8 @@ if gpu_num > 0:
 else:
     batch = args["batch_size"]
 
-# Autoencoder loss
-
+""" Autoencoder loss
+"""
 
 def customloss(ytrue, ypred):
     # standard deviation of each feature mentioned in paper for MIMIC_III data
@@ -141,7 +137,7 @@ def interp_net():
         model = multi_gpu_model(orig_model, gpus=gpu_num)
     else:
         model = orig_model
-    print(orig_model.summary())
+    print orig_model.summary()
     return model
 
 
@@ -154,19 +150,30 @@ callbacks_list = [earlystop]
 i = 0
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
 for train, test in kfold.split(np.zeros(len(y)), y):
-    print("Running Fold:", i+1)
+    print "Running Fold:", i+1
     model = interp_net()  # re-initializing every time
-    model.compile(optimizer='adam', loss={'main_output': 'binary_crossentropy', 'aux_output': customloss},
-                  loss_weights={'main_output': 1., 'aux_output': 1.}, metrics={'main_output': 'accuracy'})
-    model.fit({'input': x[train]}, {'main_output': y[train], 'aux_output': x[train]},
-              batch_size=batch, callbacks=callbacks_list, nb_epoch=iter, validation_split=0.20, verbose=2)
+    model.compile(
+        optimizer='adam',
+        loss={'main_output': 'binary_crossentropy', 'aux_output': customloss},
+        loss_weights={'main_output': 1., 'aux_output': 1.},
+        metrics={'main_output': 'accuracy'})
+    model.fit(
+        {'input': x[train]}, {'main_output': y[train], 'aux_output': x[train]},
+        batch_size=batch,
+        callbacks=callbacks_list,
+        nb_epoch=epoch,
+        validation_split=0.20,
+        verbose=2)
     y_pred = model.predict(x[test], batch_size=batch)
     y_pred = y_pred[0]
-    total_loss, score, reconst_loss,  acc = model.evaluate(
-        {'input': x[test]}, {'main_output': y[test], 'aux_output': x[test]}, batch_size=batch, verbose=0)
+    total_loss, score, reconst_loss, acc = model.evaluate(
+        {'input': x[test]},
+        {'main_output': y[test], 'aux_output': x[test]},
+        batch_size=batch,
+        verbose=0)
     results['loss'].append(score)
     results['acc'].append(acc)
     results['auc'].append(auc_score(y[test], y_pred))
     results['auprc'].append(auprc(y[test], y_pred))
-    print(results)
+    print results
     i += 1

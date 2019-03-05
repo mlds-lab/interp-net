@@ -1,15 +1,12 @@
 import argparse
-import numpy as np
-import pandas as pd
 import cPickle as pickle
-import matplotlib.pyplot as plt
-import keras
+import numpy as np
 import tensorflow as tf
-
-from keras.models import load_model, Model, Sequential
-from keras.layers import Input, Dense, Embedding, Masking, GRU, Dropout, Lambda, Permute
+import keras
+from keras.models import Model
+from keras.layers import Input, Dense, GRU, Lambda, Permute
 from sklearn.preprocessing import MultiLabelBinarizer
-from interpolation_layer import single_channel_interp, cross_channel_interp
+from interpolation_layer import single_channel_interp
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-batch", "--batch_size", type=int, default=256,
@@ -22,7 +19,7 @@ ap.add_argument("-ref", "--ref_points", type=int,
                 default=128, help="# of refpoints")
 args = vars(ap.parse_args())
 batch = args["batch_size"]
-iter = args["epochs"]
+epoch = args["epochs"]
 hid = args["hidden_units"]
 ref_points = args["ref_points"]
 hours_look_ahead = 100  # same as the input time stamps range
@@ -31,8 +28,7 @@ num_features = 1
 
 
 # Loading Dataset
-file = 'Dataset/UWaveGestureLibraryAll-10.pkl'
-with open(file, 'rb') as f:
+with open('Dataset/UWaveGestureLibraryAll-10.pkl', 'rb') as f:
     x_train, y_train, x_test, y_test, l_train, l_test = pickle.load(f)
 
 x_train = np.array(x_train)
@@ -50,13 +46,13 @@ l_test = mlb.fit_transform(l_test)
 print(x_train.shape, y_train.shape, x_test.shape,
       y_test.shape, l_train.shape, l_test.shape)
 
-"""To implement the autoencoder component of the loss, we introduce a set 
-of masking variables mr (and mr1) for each data point. If mr = 0, then we remove 
-the data point as an input to the interpolation network, and include 
-the predicted value at this time point when assessing
-the autoencoder loss. In practice, we randomly select 20% of the 
-observed data points to hold out from
-every input time series."""
+# To implement the autoencoder component of the loss, we introduce a set 
+# of masking variables mr (and mr1) for each data point. If mr = 0, then we remove 
+# the data point as an input to the interpolation network, and include 
+# the predicted value at this time point when assessing
+# the autoencoder loss. In practice, we randomly select 20% of the 
+# observed data points to hold out from
+# every input time series.
 
 m = np.ones_like(x_train) # for one dimensional time series m is all ones
 mr = np.ones_like(x_train)
@@ -80,10 +76,9 @@ def customloss(ytrue, ypred):
     wc = 1
     y = ytrue[:, :num_features, :]
     m2 = ytrue[:, 3*num_features:4*num_features, :]
-    m = 1 - m2
     ypred = ypred[:, :num_features, :]
     x = (y - ypred)*(y - ypred)
-    x = x*m
+    x = x * (1 - m2)
     count = tf.reduce_sum(m, axis=2)
     count = tf.where(count > 0, count, tf.ones_like(count))
     x = tf.reduce_sum(x, axis=2)/count
@@ -112,5 +107,5 @@ callbacks_list = [earlystop]
 
 print('Train...')
 model.fit({'input': x_test}, {'main_output': l_test, 'aux_output': x_test}, batch_size=batch,
-          callbacks=callbacks_list, epochs=iter, validation_split=0.3, shuffle=True)
+          callbacks=callbacks_list, epochs=epoch, validation_split=0.3, shuffle=True)
 print(model.evaluate(x_train, [l_train, x_train], batch_size=batch))
