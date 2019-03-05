@@ -13,7 +13,7 @@ required Python modules.
 ## Usage
 For running our model on univariate time series (UWave dataset):
 ```bash
-python univariate_example.py --epochs 1000 --hidden_units 128 --ref_points 128 --batch_size 1024
+python src/univariate_example.py --epochs 1000 --hidden_units 128 --ref_points 128 --batch_size 1024
 ```
 
 ## References

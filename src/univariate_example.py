@@ -76,13 +76,16 @@ def customloss(ytrue, ypred):
     wc = 1
     y = ytrue[:, :num_features, :]
     m2 = ytrue[:, 3*num_features:4*num_features, :]
+    m2 = 1 - m2
+    m1 = ytrue[:, num_features:2*num_features, :]
+    m = m1 * m2
     ypred = ypred[:, :num_features, :]
-    x = (y - ypred)*(y - ypred)
-    x = x * (1 - m2)
+    x = (y - ypred) * (y - ypred)
+    x = x * m
     count = tf.reduce_sum(m, axis=2)
     count = tf.where(count > 0, count, tf.ones_like(count))
     x = tf.reduce_sum(x, axis=2)/count
-    x = x/(wc**2)  # divide by std in case of multivariate time-series                                                               \
+    x = x/(wc**2)  # divide by std in case of multivariate time-series
     x = tf.reduce_sum(x, axis=1)/num_features
     return tf.reduce_mean(x)
 
