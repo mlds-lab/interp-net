@@ -6,6 +6,11 @@ network allows for information to be shared across multiple dimensions of a mult
 
 We use a two layer interpolation network. The first interpolation layer performs a semi-parametric univariate interpolation for each of the D time series separately while the second layer merges information from across all of the D time series at each reference time point by taking into account the correlations among the time series. 
 
+
+## References
+> Satya Narayan Shukla and Benjamin Marlin. Interpolation-prediction networks for irregularly sampled time series. In International Conference on Learning Representations, 2019. \[[pdf](https://openreview.net/pdf?id=r1efr3C9Ym)\]
+
+
 ## Requirements
 The code requires Python 2.7. The file [requirements.txt](requirements.txt) contains the full list of
 required Python modules.
@@ -15,9 +20,6 @@ For running our model on univariate time series (UWave dataset):
 ```bash
 python src/univariate_example.py --epochs 1000 --hidden_units 2048 --ref_points 128 --batch_size 2048
 ```
-
-## References
-Satya Narayan Shukla and Benjamin Marlin. Interpolation-prediction networks for irregularly sampled time series. In International Conference on Learning Representations, 2019. \[[pdf](https://openreview.net/pdf?id=r1efr3C9Ym)\]
 
 ## Contact
 For more  details, please contact <snshukla@cs.umass.edu>. 
