@@ -20,11 +20,9 @@ For running our model on univariate time series (UWave dataset):
 ```bash
 python src/univariate_example.py --epochs 1000 --hidden_units 2048 --ref_points 128 --batch_size 2048
 ```
-To reproduce the results on MIMIC-III Dataset, first you need to have an access to the dataset which can be requested \[here(https://mimic.physionet.org/gettingstarted/access/)\]. Once your application to access MIMIC has been approved, you can download the data \[here(https://physionet.org/works/MIMICIIIClinicalDatabase/)\]. You can use the scripts available \[here(https://physionet.org/works/MIMICIIIClinicalDatabase/)\] to import the dataset into a database. Once you have created the database, run these scripts sequentially.
+To reproduce the results on MIMIC-III Dataset, first you need to have an access to the dataset which can be requested [here](https://mimic.physionet.org/gettingstarted/access/). Once your application to access MIMIC has been approved, you can download the data [here](https://physionet.org/works/MIMICIIIClinicalDatabase/). You can use the scripts available [here](https://physionet.org/works/MIMICIIIClinicalDatabase/) to import the dataset into a database. Once you have created the database, run these scripts in order.
 ```bash
 python mimic_data_extraction.py
-```
-```bash
 python multivariate_example.py --epochs 1000 --reference_points 192 --hours_from_adm 48 --batch_size 256 --gpus 4
 ```
 
