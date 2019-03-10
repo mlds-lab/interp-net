@@ -9,32 +9,20 @@ from keras.utils import multi_gpu_model
 from keras.layers import Input, Dense, GRU, Lambda, Permute
 from keras.models import Model
 from interpolation_layer import single_channel_interp, cross_channel_interp
+from mimic_preprocessing import load_data, trim_los, fix_input_format
 
 np.random.seed(10)
 tf.set_random_seed(10)
 
-# Loading dataset
-# y : (N,) discrete for classification, real values for regression
-# x : (N, D, tn) input multivariate time series data with dimension
-#     where N is number of data cases, D is the dimension of
-#     sparse and irregularly sampled time series and tn is the union
-#     of observed time stamps in all the dimension for a data case n.
-#     Since each tn is of variable length, we pad them with zeros to
-#     have an array representation.
-# m : (N, D, tn) where m[i,j,k] = 0 means that x[i,j,k] is not observed.
-# T : (N, D, tn) represents the actual time stamps of observation;
-
-
-"""To implement the autoencoder component of the loss, we introduce a set
-of masking variables mr (and mr1) for each data point. If drop_mask = 0,
-then we removecthe data point as an input to the interpolation network,
-and includecthe predicted value at this time point when assessing
-the autoencoder loss. In practice, we randomly select 20% of the
-observed data points to hold out from
-every input time series."""
-
 
 def hold_out(mask, perc=0.2):
+    """To implement the autoencoder component of the loss, we introduce a set
+    of masking variables mr (and mr1) for each data point. If drop_mask = 0,
+    then we removecthe data point as an input to the interpolation network,
+    and includecthe predicted value at this time point when assessing
+    the autoencoder loss. In practice, we randomly select 20% of the
+    observed data points to hold out from
+    every input time series."""
     drop_mask = np.ones_like(mask)
     drop_mask *= mask
     for i in range(mask.shape[0]):
@@ -52,8 +40,23 @@ def hold_out(mask, perc=0.2):
     return drop_mask
 
 
-x = np.concatenate((x, m, T, hold_out(m)), axis=1)  # input format
-print x.shape, y.shape
+def mean_imputation(vitals, mask):
+    """For the time series missing entirely, our interpolation network 
+    assigns the starting point (time t=0) value of the time series to 
+    the global mean before applying the two-layer interpolation network.
+    In such cases, the first interpolation layer just outputs the global
+    mean for that channel, but the second interpolation layer performs 
+    a more meaningful interpolation using the learned correlations from
+    other channels."""
+    counts = np.sum(np.sum(mask, axis=2), axis=0)
+    mean_values = np.sum(np.sum(vitals*mask, axis=2), axis=0)/counts
+    for i in range(mask.shape[0]):
+        for j in range(mask.shape[1]):
+            if np.sum(mask[i, j]) == 0:
+                mask[i, j, 0] = 1
+                vitals[i, j, 0] = mean_values[j]
+    return
+
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-g", "--gpus", type=int, default=4,
@@ -82,10 +85,30 @@ if gpu_num > 0:
 else:
     batch = args["batch_size"]
 
-""" Autoencoder loss
-"""
+
+# Loading dataset
+# y : (N,) discrete for classification, real values for regression
+# x : (N, D, tn) input multivariate time series data with dimension
+#     where N is number of data cases, D is the dimension of
+#     sparse and irregularly sampled time series and tn is the union
+#     of observed time stamps in all the dimension for a data case n.
+#     Since each tn is of variable length, we pad them with zeros to
+#     have an array representation.
+# m : (N, D, tn) where m[i,j,k] = 0 means that x[i,j,k] is not observed.
+# T : (N, D, tn) represents the actual time stamps of observation;
+
+vitals, label = load_data()
+vitals, timestamps = trim_los(vitals, hours_look_ahead)
+x, m, T = fix_input_format(vitals, timestamps)
+mean_imputation(x, m)
+x = np.concatenate((x, m, T, hold_out(m)), axis=1)  # input format
+y = np.array(label)
+print x.shape, y.shape
+
 
 def customloss(ytrue, ypred):
+    """ Autoencoder loss
+    """
     # standard deviation of each feature mentioned in paper for MIMIC_III data
     wc = np.array([3.33, 23.27, 5.69, 22.45, 14.75, 2.32,
                    3.75, 1.0, 98.1, 23.41, 59.32, 1.41])
