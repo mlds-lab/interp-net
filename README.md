@@ -22,8 +22,8 @@ python src/univariate_example.py --epochs 1000 --hidden_units 2048 --ref_points 
 ```
 To reproduce the results on MIMIC-III Dataset, first you need to have an access to the dataset which can be requested [here](https://mimic.physionet.org/gettingstarted/access/). Once your application to access MIMIC has been approved, you can download the [data](https://physionet.org/works/MIMICIIIClinicalDatabase/). MIMIC is provided as a collection of comma-separated (CSV) files. You can use these [scripts](https://physionet.org/works/MIMICIIIClinicalDatabase/) to import the csv files into a database. Once you have created the database, run these scripts in order.
 ```bash
-python mimic_data_extraction.py
-python multivariate_example.py --epochs 1000 --reference_points 192 --hours_from_adm 48 --batch_size 256 --gpus 4
+python src/mimic_data_extraction.py
+python src/multivariate_example.py --epochs 1000 --reference_points 192 --hours_from_adm 48 --batch_size 256 --gpus 4
 ```
 
 ## Contact
