@@ -16,7 +16,7 @@ class single_channel_interp(Layer):
     def build(self, input_shape):
         #input_shape [batch, features, time_stamp]
         self.time_stamp = input_shape[2]
-        self.d_dim = input_shape[1]/4
+        self.d_dim = input_shape[1] // 4
         self.activation = activations.get('sigmoid')
         self.kernel = self.add_weight(
             name='kernel',
@@ -73,7 +73,7 @@ class cross_channel_interp(Layer):
         super(cross_channel_interp, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        self.d_dim = input_shape[1]/3
+        self.d_dim = input_shape[1] // 3
         self.activation = activations.get('sigmoid')
         self.cross_channel_interp = self.add_weight(
             name='cross_channel_interp',

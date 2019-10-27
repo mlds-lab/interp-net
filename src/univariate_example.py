@@ -1,12 +1,17 @@
 import argparse
-import cPickle as pickle
+import pickle
 import numpy as np
+import logging, os
+logging.disable(logging.WARNING)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 import keras
 from keras.models import Model
 from keras.layers import Input, Dense, GRU, Lambda, Permute
 from sklearn.preprocessing import MultiLabelBinarizer
 from interpolation_layer import single_channel_interp
+import warnings
+warnings.filterwarnings("ignore")
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-batch", "--batch_size", type=int, default=256,
@@ -29,7 +34,7 @@ num_features = 1
 
 # Loading Dataset
 with open('Dataset/UWaveGestureLibraryAll-10.pkl', 'rb') as f:
-    x_train, y_train, x_test, y_test, l_train, l_test = pickle.load(f)
+    x_train, y_train, x_test, y_test, l_train, l_test = pickle.load(f, encoding='latin1')
 
 x_train = np.array(x_train)
 l_train = np.array(l_train)

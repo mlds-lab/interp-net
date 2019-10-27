@@ -4,11 +4,11 @@ import numpy as np
 
 
 def load_data():
-    print 'Loading files ...'
+    print('Loading files ...')
     vitals = pickle.load(open('vitals_records.p', 'rb'))
     adm_info = pickle.load(
         open('adm_type_los_mortality.p', 'rb'))
-    print 'Loading Done!'
+    print('Loading Done!')
     adm_id = [record[0] for record in adm_info]
     adm_id_needed = [record[0] for record in adm_info if record[2] >= 48]
 
@@ -18,7 +18,7 @@ def load_data():
 
     vitals = [vitals_dict[x] for x in adm_id_needed]
     label = [rec[3] for x in adm_id_needed for rec in adm_info if x == rec[0]]
-    print len(vitals), len(label)
+    print(len(vitals), len(label))
     return vitals, label
 
 

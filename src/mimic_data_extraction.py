@@ -34,7 +34,7 @@ pickle.dump(length_of_stay, open('adm_type_los_mortality.p', 'wb'))
 
 data = []
 for id in range(len(list_adm_id)):
-    print id, list_adm_id[id][0]
+    print(id, list_adm_id[id][0])
     vitals = []
 
     # print("Sp02")
