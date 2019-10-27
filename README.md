@@ -12,7 +12,7 @@ We use a two layer interpolation network. The first interpolation layer performs
 
 
 ## Requirements
-The code requires Python 3.7. The file [requirements.txt](requirements.txt) contains the full list of
+The code requires Python 3.7 or later. The file [requirements.txt](requirements.txt) contains the full list of
 required Python modules.
 
 ## Usage
@@ -22,7 +22,7 @@ python src/univariate_example.py --epochs 1000 --hidden_units 2048 --ref_points 
 ```
 To reproduce the results on MIMIC-III Dataset, first you need to have an access to the dataset which can be requested [here](https://mimic.physionet.org/gettingstarted/access/). Once your application to access MIMIC has been approved, you can download the [data](https://physionet.org/works/MIMICIIIClinicalDatabase/). MIMIC is provided as a collection of comma-separated (CSV) files. You can use these [scripts](https://physionet.org/works/MIMICIIIClinicalDatabase/) to import the csv files into a database. Assuming you installed postgres while creating the database, you need to install psycopg2 using
 ```bash
-pip3 install psycopg2
+pip install psycopg2
 ```
 Once the database has been created, run these scripts in order.
 ```bash
