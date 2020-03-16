@@ -30,8 +30,10 @@ python src/mimic_data_extraction.py
 python src/multivariate_example.py --epochs 1000 --reference_points 192 --hours_from_adm 48 --batch_size 256 --gpus 4
 ```
 ### Data Format Example
-The notations here align with the notation section 3.1 in the paper. For brevity, lets assume we have just one example in the training set and dimension $d = 2$ 
-```
+The notations here align with the notation section 3.1 in the paper. For brevity, lets assume we have just one example in the training set and dimension $`d = 2`$. 
+
+```math
+\mathcal{D}=\{(\mathbf{s}_1,y_1)}
 x: Input time series (2 variables)
 ```
 
